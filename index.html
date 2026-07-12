@@ -1,1 +1,87 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17131d"><link rel="manifest" href="manifest.webmanifest"><title>Julie Voice Studio</title><style>:root{color-scheme:dark;--b:#130f18;--c:#261d2e;--d:#35273f;--t:#fff8fd;--m:#cdbfce;--p:#e9a8c8;--g:#9fd6b2}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#47233f,transparent 35%),var(--b);color:var(--t);font:18px system-ui;padding:16px 16px 100px}main{max-width:720px;margin:auto}header{display:flex;align-items:center;gap:12px;padding:8px 0 18px}.logo{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:var(--c);border:1px solid var(--p)}h1{font-size:1.15rem;margin:0}p{color:var(--m);line-height:1.5}.card{background:linear-gradient(145deg,#2b2033,#211927);border:1px solid #ffffff1b;border-radius:25px;padding:22px;margin-bottom:15px;box-shadow:0 18px 50px #0006}.hero h2,.coach h2{font-size:clamp(2rem,8vw,3.5rem);line-height:1.02;margin:8px 0 12px}.k{color:#d8bd83;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}.btn{width:100%;min-height:64px;border:0;border-radius:19px;padding:14px;margin-top:10px;font:800 1rem system-ui}.pri{background:var(--p);color:#281725}.sec{background:var(--d);color:var(--t);border:1px solid #ffffff20}.bad{background:#4d2932;color:#ffe1e5}.view{display:none}.view.on{display:block}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{background:var(--d);border-radius:16px;padding:13px}.mini b{font-size:.72rem;color:#d8bd83}.mini p{margin:6px 0 0;font-size:.95rem}.phrase{font-size:clamp(1.6rem,7vw,2.8rem);font-weight:900;text-align:center;padding:20px;background:#9fd6b211;border:1px solid #9fd6b244;border-radius:18px;margin:14px 0}.pause{color:var(--p)}.status{text-align:center;color:var(--g);font-weight:800;min-height:26px;margin-top:9px}.meter{height:20px;background:var(--d);border-radius:99px;overflow:hidden;margin:15px 0}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g),#efca86,#f0a6ad)}.issues{display:grid;grid-template-columns:1fr 1fr;gap:8px}.issue{min-height:58px;border:1px solid #ffffff1b;border-radius:15px;background:var(--d);color:var(--t);font-weight:750;padding:10px}.result{margin-top:12px;background:#ffffff0a;border-radius:17px;padding:14px;color:var(--m)}.result strong{display:block;color:var(--t);margin-bottom:7px}.hide{display:none!important}nav{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);width:min(700px,calc(100% - 18px));display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px;background:#1d1624ee;border:1px solid #ffffff1d;border-radius:20px}nav button{min-height:56px;border:0;border-radius:14px;background:transparent;color:var(--m);font-weight:800}nav button.on{background:var(--d);color:var(--t)}audio{width:100%;margin-top:10px}@media(max-width:600px){.three,.row,.issues{grid-template-columns:1fr}.card{padding:18px}}</style></head><body><main><header><div class="logo">🎙️</div><div><h1>Julie Voice Studio</h1><small>C4-friendly private coaching</small></div></header><section id="home" class="view on"><article class="card hero"><div class="k">Follow-me coach</div><h2>One instruction at a time.</h2><p>Short spoken guidance with no pressure to force pitch or breath.</p><button class="btn pri" onclick="start()">START 5-MINUTE SESSION</button><button class="btn sec" onclick="go('tools')">SET UP MICROPHONE</button></article><article class="card"><div class="k">Android app</div><h3>Install on your tablet</h3><p>Open this HTTPS page in Chrome, allow the microphone, then install it from Chrome.</p><button id="install" class="btn sec">INSTALL APP</button><div id="installMsg" class="status"></div></article></section><section id="coach" class="view"><article class="card coach"><div class="k" id="count">Step 1 of 4</div><h2 id="title"></h2><p id="lead"></p><div class="three"><div class="mini"><b>DO THIS</b><p id="do"></p></div><div class="mini"><b>FEEL THIS</b><p id="feel"></p></div><div class="mini"><b>AVOID THIS</b><p id="avoid"></p></div></div><div id="phrase" class="phrase"></div><button class="btn pri" id="next">I’M READY — NEXT</button><div class="row"><button class="btn sec" onclick="say()">🔊 HEAR AGAIN</button><button class="btn sec" id="record">● RECORD</button><button class="btn sec" id="easier">MAKE IT EASIER</button><button class="btn bad" id="rest">REST</button></div><div id="status" class="status"></div><audio id="audio" controls class="hide"></audio><button class="btn sec" onclick="go('tools')">WHY DOESN’T IT SOUND RIGHT?</button></article></section><section id="tools" class="view"><article class="card"><div class="k">Microphone setup</div><h2>Use ordinary speech.</h2><p>Start about 20–30 cm away and slightly beside your breath. This checks noise and level; it cannot measure exact distance.</p><div class="meter"><i id="meter"></i></div><button class="btn pri" id="check">RUN AUTOMATIC CHECK</button><div id="micResult" class="result hide"></div></article><article class="card"><div class="k">Sound fixer</div><h2>Why doesn’t it sound right?</h2><p>Choose one problem and get one correction.</p><div id="issues" class="issues"></div><div id="fix" class="result hide"></div></article></section></main><nav><button class="on" data-v="home">HOME</button><button data-v="coach">COACH</button><button data-v="tools">MIC & FIX</button></nav><script>const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];let st=0,stream,rec,parts=[],url,installPrompt;const L=[['Get comfortable.','Look ahead, loosen your jaw and take one normal breath.','Let your jaw and shoulders rest.','Easy and unforced.','A huge breath or tight throat.','One normal breath.'],['Find a forward sound.','Make a gentle “mmm” for about one second.','Keep your lips softly together.','A light buzz near your lips.','Pushing air or squeezing.','Mmm.'],['Keep it light and clear.','Move from “mmm” into one small word.','Say it gently, not loudly.','Clear but less heavy.','Whispering or falsetto.','Mmm… maybe.'],['Use a short sentence.','Say each section as its own breath group.','Pause before your breath empties.','A natural pause and clear ending.','Squeezing out final words.','That sounds lovely / today.']];const P={deep:['Too deep','Start with a tiny “mmm”, then carry the forward feeling into “me”.','Do not force pitch higher.','Mmm… me.'],breathy:['Too breathy','Use less air and keep consonants clear.','Do not whisper.','Vee… very.'],nasal:['Too nasal','Open the mouth slightly while keeping brightness.','Do not pinch the nose area.','Maybe.'],strained:['Strained or high','Come down slightly and make the sound smaller.','Do not chase a number.','Hello.'],breath:['Running out of breath','Stop at the slash and take another normal breath.','Do not force the full sentence.','That sounds lovely / today.'],fake:['Sounds fake','Use less pitch movement and speak like yourself.','Do not perform a character.','Do you want to watch something?'],flat:['Too flat','Lift one important word, then let it settle.','Do not sing the sentence.','That sounds REALLY nice.'],drop:['Drops at end','End earlier and keep the last word clear.','Do not spend all air at the start.','Pretty good / today.'],buzz:['No forward buzz','Try “vvv” or “zzz” before humming.','Do not push harder.','Vvv… vee.'],quiet:['Mic too quiet','Move the microphone closer before changing your voice.','Do not shout for the device.','Hi, this is my voice.']};function go(v){$$('.view').forEach(x=>x.classList.toggle('on',x.id==v));$$('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}$$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));function draw(){let x=L[st];$('#count').textContent=`Step ${st+1} of 4`;$('#title').textContent=x[0];$('#lead').textContent=x[1];$('#do').textContent=x[2];$('#feel').textContent=x[3];$('#avoid').textContent=x[4];$('#phrase').innerHTML=x[5].replace(' / ',' <span class=pause>/</span> ');$('#next').textContent=st<3?'I’M READY — NEXT':'START AGAIN'}function say(){speechSynthesis.cancel();let x=L[st],u=new SpeechSynthesisUtterance(`${x[0]} ${x[1]} Do this: ${x[2]} Feel: ${x[3]}`);u.rate=.94;speechSynthesis.speak(u)}function start(){st=0;draw();go('coach');say()}$('#next').onclick=()=>{st=st<3?st+1:0;draw();say()};$('#easier').onclick=()=>{if(st>0)st--;draw();$('#status').textContent='Made easier. That still counts.'};$('#rest').onclick=()=>{speechSynthesis.cancel();if(rec?.state=='recording')rec.stop();$('#status').textContent='Resting is good training.'};async function mic(){if(stream)return stream;stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}});return stream}$('#record').onclick=async()=>{try{if(rec?.state=='recording'){rec.stop();return}let s=await mic();parts=[];rec=new MediaRecorder(s);rec.ondataavailable=e=>e.data.size&&parts.push(e.data);rec.onstop=()=>{if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(new Blob(parts,{type:rec.mimeType}));$('#audio').src=url;$('#audio').classList.remove('hide');$('#record').textContent='● RECORD AGAIN';$('#status').textContent='Recorded. Listen for ease, not perfection.'};rec.start();$('#record').textContent='■ STOP';$('#status').textContent='Recording one comfortable attempt…'}catch(e){$('#status').textContent='Microphone blocked. Use Chrome on this HTTPS page and allow permission.'}};$('#check').onclick=async()=>{let r=$('#micResult');r.classList.remove('hide');try{let s=await mic(),c=new AudioContext(),src=c.createMediaStreamSource(s),a=c.createAnalyser();a.fftSize=1024;src.connect(a);let d=new Float32Array(a.fftSize),noise=[],speech=[];async function sample(ms,arr,msg){r.innerHTML='<strong>'+msg+'</strong>';return new Promise(ok=>{let t=performance.now();function f(n){a.getFloatTimeDomainData(d);let q=0;for(let x of d)q+=x*x;let rms=Math.sqrt(q/d.length);arr.push(rms);$('#meter').style.width=Math.min(100,rms*700)+'%';n-t<ms?requestAnimationFrame(f):ok()}requestAnimationFrame(f)})}await sample(2500,noise,'Stay quiet for a moment…');await sample(3500,speech,'Say: Hi, this is my comfortable voice.');let n=noise.reduce((a,b)=>a+b,0)/noise.length,level=speech.sort((a,b)=>a-b)[Math.floor(speech.length*.8)]||0,ad=[];if(n>.025)ad.push('Reduce nearby background noise.');if(level<.035)ad.push('Move the microphone closer. Do not speak louder.');if(level>.22)ad.push('Move the microphone farther away.');if(!ad.length)ad.push('Keep this position. Ordinary speech is clear.');r.innerHTML='<strong>'+ad[0]+'</strong>'+ad.slice(1).join('<br>');c.close()}catch(e){r.innerHTML='<strong>Microphone blocked.</strong>Allow Chrome microphone permission, then reload.'}};Object.entries(P).forEach(([k,v])=>{let b=document.createElement('button');b.className='issue';b.textContent=v[0];b.onclick=()=>{let f=$('#fix');f.classList.remove('hide');f.innerHTML=`<strong>${v[1]}</strong>AVOID: ${v[2]}<div class=phrase>${v[3].replace(' / ',' <span class=pause>/</span> ')}</div><button class='btn sec' id='read'>🔊 READ FIX</button>`;$('#read').onclick=()=>{let u=new SpeechSynthesisUtterance(`${v[1]} Avoid: ${v[2]} Try: ${v[3]}`);u.rate=.94;speechSynthesis.speak(u)}};$('#issues').appendChild(b)});window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installMsg').textContent='Ready to install.'});$('#install').onclick=async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null}else $('#installMsg').textContent='Chrome menu ⋮ → Install app or Add to Home screen.'};if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');draw();</script></body></html>
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17131d">
+  <meta name="description" content="Private, accessible C4-friendly feminine voice training.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon-192.svg">
+  <title>Julie Voice Studio</title>
+  <style>
+    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 0%,#40213a 0,transparent 35%),#130f18;color:#fff8fd;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:24px}main{width:min(620px,100%);background:#231b2b;border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:30px;box-shadow:0 24px 70px rgba(0,0,0,.38);text-align:center}.mark{width:76px;height:76px;border-radius:24px;display:grid;place-items:center;margin:0 auto 18px;background:linear-gradient(145deg,#4a304e,#292033);font-size:36px;border:1px solid #e9a8c8}h1{font-size:clamp(2rem,7vw,3.4rem);margin:0 0 10px}p{font-size:1.1rem;color:#cdbfce;line-height:1.55}.track{height:14px;background:#352a40;border-radius:999px;overflow:hidden;margin:24px 0 12px}.fill{height:100%;width:0;background:linear-gradient(90deg,#e9a8c8,#b8a5e6);transition:width .2s}#status{font-weight:700;color:#f5dce9}button{min-height:58px;width:100%;border:0;border-radius:18px;background:#e9a8c8;color:#231724;font-size:1.05rem;font-weight:850;padding:14px 20px;margin-top:16px;display:none}.error button{display:block}
+  </style>
+</head>
+<body>
+<main id="loaderCard">
+  <div class="mark" aria-hidden="true">🎙️</div>
+  <h1>Julie Voice Studio</h1>
+  <p>Restoring the full English voice coach…</p>
+  <div class="track" role="progressbar" aria-label="Loading app" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
+  <div id="status" aria-live="polite">Preparing the full app</div>
+  <button id="retry" type="button">Try loading again</button>
+</main>
+<script>
+const CHUNKS=["./chunks/app-01.b64","./chunks/app-02.b64","./chunks/app-03.b64","./chunks/app-04.b64","./chunks/app-05.b64","./chunks/app-06.b64","./chunks/app-07.b64","./chunks/app-08.b64","./chunks/app-09.b64","./chunks/app-10.b64","./chunks/app-11.b64"];
+const ENGLISH_PATCH=`<script>
+(function(){
+  document.documentElement.lang='en-AU';
+  function chooseEnglishVoice(){
+    const voices=(window.speechSynthesis&&speechSynthesis.getVoices)?speechSynthesis.getVoices():[];
+    return voices.find(v=>/^en-AU$/i.test(v.lang))||voices.find(v=>/^en-GB$/i.test(v.lang))||voices.find(v=>/^en-US$/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang))||null;
+  }
+  if('speechSynthesis' in window){
+    const originalSpeak=speechSynthesis.speak.bind(speechSynthesis);
+    speechSynthesis.speak=function(utterance){
+      try{
+        const voice=chooseEnglishVoice();
+        utterance.lang=voice?.lang||'en-AU';
+        if(voice) utterance.voice=voice;
+      }catch(e){utterance.lang='en-AU';}
+      return originalSpeak(utterance);
+    };
+    speechSynthesis.onvoiceschanged=function(){
+      const select=document.getElementById('voiceSelect');
+      if(select){
+        const options=[...select.options];
+        const preferred=options.find(o=>/en-AU/i.test(o.textContent))||options.find(o=>/en-GB/i.test(o.textContent))||options.find(o=>/English|\ben[-_]/i.test(o.textContent));
+        if(preferred){select.value=preferred.value;select.dispatchEvent(new Event('change',{bubbles:true}));}
+      }
+    };
+  }
+})();
+<\/script>`;
+async function loadApp(){
+  const card=document.getElementById('loaderCard'),fill=document.getElementById('fill'),status=document.getElementById('status'),track=document.querySelector('[role=progressbar]');
+  card.classList.remove('error');
+  try{
+    let encoded='';
+    for(let i=0;i<CHUNKS.length;i++){
+      status.textContent=`Loading full app ${i+1} of ${CHUNKS.length}`;
+      const response=await fetch(CHUNKS[i],{cache:'reload'});
+      if(!response.ok) throw new Error(`Missing app part ${i+1}`);
+      encoded+=await response.text();
+      const pct=Math.round(((i+1)/CHUNKS.length)*100);
+      fill.style.width=pct+'%';track.setAttribute('aria-valuenow',String(pct));
+    }
+    status.textContent='Starting the English voice coach';
+    const binary=atob(encoded.replace(/\s/g,''));
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+    let appHtml=new TextDecoder('utf-8').decode(bytes);
+    appHtml=appHtml.replace(/<html\s+lang=["'][^"']*["']/i,'<html lang="en-AU"');
+    appHtml=appHtml.replace('</body>',ENGLISH_PATCH+'</body>');
+    document.open();document.write(appHtml);document.close();
+  }catch(error){
+    console.error(error);status.textContent='The full app could not finish loading. Refresh once, then try again.';card.classList.add('error');
+  }
+}
+document.getElementById('retry').addEventListener('click',loadApp);
+loadApp();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',async()=>{
+    try{const reg=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await reg.update();}catch(e){console.warn(e);}
+  });
+}
+</script>
+</body></html>
