@@ -1,0 +1,18 @@
+.pwa-install-card {
+    margin: 18px 0 0;
+    border: 1px solid rgba(159,214,178,.28);
+    background: linear-gradient(135deg, rgba(159,214,178,.10), rgba(184,165,230,.06));
+    border-radius: 22px;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+  .pwa-install-card h3 { margin: 0 0 5px; }
+  .pwa-install-card p { margin: 0; color: var(--muted); }
+  .pwa-install-status { color: var(--good); font-weight: 800; margin-top: 8px; }
+  @media (max-width: 700px) {
+    .pwa-install-card { grid-template-columns: 1fr; }
+    .pwa-install-card .btn { width: 100%; }
+  }
