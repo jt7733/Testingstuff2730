@@ -16,6 +16,8 @@ window.JVS_AUDIO = (() => {
   let recordingStart = 0;
   let selectedDeviceId = '';
   let englishVoice = null;
+  let lastPitch = null;
+  let lastPitchAt = 0;
 
   const voicePriority = ['en-AU','en-GB','en-US','en-NZ','en-CA','en'];
 
@@ -98,7 +100,7 @@ window.JVS_AUDIO = (() => {
     if (source) { try { source.disconnect(); } catch {} }
     source = context.createMediaStreamSource(mediaStream);
     analyser = context.createAnalyser();
-    analyser.fftSize = 2048;
+    analyser.fftSize = 1024;
     analyser.smoothingTimeConstant = 0.25;
     source.connect(analyser);
     return analyser;
@@ -111,37 +113,45 @@ window.JVS_AUDIO = (() => {
     let sum = 0, peak = 0;
     for (const value of data) { sum += value*value; peak = Math.max(peak, Math.abs(value)); }
     const rms = Math.sqrt(sum/data.length);
-    const pitch = autoCorrelate(data, context.sampleRate);
-    return { rms, peak, pitch };
+    const now = performance.now();
+    if (rms < 0.012) {
+      lastPitch = null;
+    } else if (now - lastPitchAt >= 100) {
+      lastPitch = autoCorrelate(data, context.sampleRate);
+      lastPitchAt = now;
+    }
+    return { rms, peak, pitch:lastPitch };
   }
 
   function autoCorrelate(buffer, sampleRate) {
-    let rms = 0;
-    for (const value of buffer) rms += value*value;
-    rms = Math.sqrt(rms/buffer.length);
-    if (rms < 0.012) return null;
-    let start = 0, end = buffer.length - 1;
-    const threshold = 0.2;
-    for (let i=0;i<buffer.length/2;i++) { if (Math.abs(buffer[i]) < threshold) { start=i; break; } }
-    for (let i=1;i<buffer.length/2;i++) { if (Math.abs(buffer[buffer.length-i]) < threshold) { end=buffer.length-i; break; } }
-    const sliced = buffer.slice(start,end);
-    const correlations = new Array(sliced.length).fill(0);
-    for (let lag=0;lag<sliced.length;lag++) {
-      let c=0;
-      for (let i=0;i<sliced.length-lag;i++) c += sliced[i]*sliced[i+lag];
-      correlations[lag]=c;
+    const minLag = Math.max(2, Math.floor(sampleRate / 500));
+    const maxLag = Math.min(buffer.length - 2, Math.floor(sampleRate / 60));
+    let bestLag = -1;
+    let bestScore = -Infinity;
+
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let correlation = 0;
+      let energyA = 0;
+      let energyB = 0;
+      const count = buffer.length - lag;
+      for (let i = 0; i < count; i++) {
+        const a = buffer[i];
+        const b = buffer[i + lag];
+        correlation += a * b;
+        energyA += a * a;
+        energyB += b * b;
+      }
+      const normaliser = Math.sqrt(energyA * energyB);
+      const score = normaliser > 0 ? correlation / normaliser : 0;
+      if (score > bestScore) {
+        bestScore = score;
+        bestLag = lag;
+      }
     }
-    let dip=0;
-    while (dip+1<correlations.length && correlations[dip] > correlations[dip+1]) dip++;
-    let max=-Infinity, pos=-1;
-    for (let i=dip;i<correlations.length;i++) if(correlations[i]>max){max=correlations[i];pos=i;}
-    if (pos <= 0) return null;
-    let T0=pos;
-    const x1=correlations[T0-1]||0,x2=correlations[T0]||0,x3=correlations[T0+1]||0;
-    const a=(x1+x3-2*x2)/2,b=(x3-x1)/2;
-    if(a) T0 -= b/(2*a);
-    const hz=sampleRate/T0;
-    return hz>=60 && hz<=500 ? hz : null;
+
+    if (bestLag < 0 || bestScore < 0.42) return null;
+    const hz = sampleRate / bestLag;
+    return hz >= 60 && hz <= 500 ? hz : null;
   }
 
   function startMeter(callback) {
