@@ -33,8 +33,8 @@ window.JVS_APP = (() => {
     $$('.view').forEach(v=>v.classList.toggle('active',v.id===`${name}View`));
     $$('.nav-button').forEach(b=>b.classList.toggle('active',b.dataset.openView===name));
     if(name==='home')renderHome();
-    if(name==='progress')renderProgress();
-    if(name==='mic')prepareMicView();
+    if(name==='progress')window.JVS_APP?.renderProgress?.();
+    if(name==='mic')window.JVS_APP?.prepareMicView?.();
     window.scrollTo({top:0,behavior:'smooth'});$('#main').focus({preventScroll:true});
   }
 
@@ -78,7 +78,7 @@ window.JVS_APP = (() => {
     const ex=currentExercise(),s=stages(ex)[session.stage];
     $('#coachSkill').textContent=ex.skill;$('#coachCounter').textContent=`Exercise ${session.exerciseIndex+1} of ${session.exercises.length}`;$('#sessionProgress').style.width=`${((session.exerciseIndex+session.stage/4)/session.exercises.length)*100}%`;
     $('#coachIcon').textContent=s.icon;$('#coachStepLabel').textContent=s.label;$('#coachTitle').textContent=s.title;$('#coachInstruction').textContent=s.instruction;$('#doCue').textContent=s.do;$('#feelCue').textContent=s.feel;$('#avoidCue').textContent=s.avoid;$('#practicePhrase').innerHTML=formatPhrase(s.phrase);
-    $('#coachStatus').textContent='';$('#playback').classList.add('hidden');$('#replayButton').classList.add('hidden');$('#saveClipButton').classList.add('hidden');currentRecording=null;
+    $('#coachStatus').textContent='';$('#playback').classList.add('hidden');$('#replayButton').classList.add('hidden');$('#saveClipButton').classList.add('hidden');$('#saveClipButton').disabled=false;$('#saveReviewClipButton').disabled=false;currentRecording=null;
     const final=session.stage===3;$('#recordButton').classList.toggle('hidden',!final||session.listenOnly);$('#mainCoachButton').classList.toggle('hidden',final&&!session.listenOnly);$('#mainCoachButton').textContent=final?'Complete silent practice':'I’m ready — next';$('#tooHardButton').textContent=session.stage>0?'Make it easier':'Use a shorter session';
   }
   function nextCoachStage(){if(session.stage<3){session.stage++;renderCoach();AUDIO.speak(buildSpokenInstruction());return}if(session.listenOnly)finishExercise()}
