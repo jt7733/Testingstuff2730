@@ -2,41 +2,18 @@
   "id": "./",
   "name": "Julie Voice Studio",
   "short_name": "Julie Voice",
-  "description": "Private, accessible C4-friendly feminine voice training with microphone setup and guided sound corrections.",
+  "description": "Private, accessible C4-friendly feminine voice training.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
-  "orientation": "any",
-  "background_color": "#130f18",
+  "background_color": "#120f17",
   "theme_color": "#17131d",
-  "categories": [
-    "education",
-    "health",
-    "lifestyle"
-  ],
+  "orientation": "any",
+  "lang": "en-AU",
+  "categories": ["education", "health", "lifestyle"],
   "icons": [
-    {
-      "src": "./icons/icon-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/maskable-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    {"src":"icons/icon-192.svg","sizes":"192x192","type":"image/svg+xml","purpose":"any"},
+    {"src":"icons/icon-512.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any"},
+    {"src":"icons/maskable-512.svg","sizes":"512x512","type":"image/svg+xml","purpose":"maskable"}
   ]
 }
