@@ -2,86 +2,117 @@
 <html lang="en-AU">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17131d">
-  <meta name="description" content="Private, accessible C4-friendly feminine voice training.">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="./icons/icon-192.svg">
+  <meta name="description" content="Accessible C4-friendly feminine voice coaching with guided practice, microphone setup and local recordings.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="stylesheet" href="styles.css">
   <title>Julie Voice Studio</title>
-  <style>
-    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 0%,#40213a 0,transparent 35%),#130f18;color:#fff8fd;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:24px}main{width:min(620px,100%);background:#231b2b;border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:30px;box-shadow:0 24px 70px rgba(0,0,0,.38);text-align:center}.mark{width:76px;height:76px;border-radius:24px;display:grid;place-items:center;margin:0 auto 18px;background:linear-gradient(145deg,#4a304e,#292033);font-size:36px;border:1px solid #e9a8c8}h1{font-size:clamp(2rem,7vw,3.4rem);margin:0 0 10px}p{font-size:1.1rem;color:#cdbfce;line-height:1.55}.track{height:14px;background:#352a40;border-radius:999px;overflow:hidden;margin:24px 0 12px}.fill{height:100%;width:0;background:linear-gradient(90deg,#e9a8c8,#b8a5e6);transition:width .2s}#status{font-weight:700;color:#f5dce9}button{min-height:58px;width:100%;border:0;border-radius:18px;background:#e9a8c8;color:#231724;font-size:1.05rem;font-weight:850;padding:14px 20px;margin-top:16px;display:none}.error button{display:block}
-  </style>
 </head>
 <body>
-<main id="loaderCard">
-  <div class="mark" aria-hidden="true">🎙️</div>
-  <h1>Julie Voice Studio</h1>
-  <p>Restoring the full English voice coach…</p>
-  <div class="track" role="progressbar" aria-label="Loading app" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
-  <div id="status" aria-live="polite">Preparing the full app</div>
-  <button id="retry" type="button">Try loading again</button>
-</main>
-<script>
-const CHUNKS=["./chunks/app-01.b64","./chunks/app-02.b64","./chunks/app-03.b64","./chunks/app-04.b64","./chunks/app-05.b64","./chunks/app-06.b64","./chunks/app-07.b64","./chunks/app-08.b64","./chunks/app-09.b64","./chunks/app-10.b64","./chunks/app-11.b64"];
-const ENGLISH_PATCH=`<script>
-(function(){
-  document.documentElement.lang='en-AU';
-  function chooseEnglishVoice(){
-    const voices=(window.speechSynthesis&&speechSynthesis.getVoices)?speechSynthesis.getVoices():[];
-    return voices.find(v=>/^en-AU$/i.test(v.lang))||voices.find(v=>/^en-GB$/i.test(v.lang))||voices.find(v=>/^en-US$/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang))||null;
-  }
-  if('speechSynthesis' in window){
-    const originalSpeak=speechSynthesis.speak.bind(speechSynthesis);
-    speechSynthesis.speak=function(utterance){
-      try{
-        const voice=chooseEnglishVoice();
-        utterance.lang=voice?.lang||'en-AU';
-        if(voice) utterance.voice=voice;
-      }catch(e){utterance.lang='en-AU';}
-      return originalSpeak(utterance);
-    };
-    speechSynthesis.onvoiceschanged=function(){
-      const select=document.getElementById('voiceSelect');
-      if(select){
-        const options=[...select.options];
-        const preferred=options.find(o=>/en-AU/i.test(o.textContent))||options.find(o=>/en-GB/i.test(o.textContent))||options.find(o=>/English|\ben[-_]/i.test(o.textContent));
-        if(preferred){select.value=preferred.value;select.dispatchEvent(new Event('change',{bubbles:true}));}
-      }
-    };
-  }
-})();
-<\/script>`;
-async function loadApp(){
-  const card=document.getElementById('loaderCard'),fill=document.getElementById('fill'),status=document.getElementById('status'),track=document.querySelector('[role=progressbar]');
-  card.classList.remove('error');
-  try{
-    let encoded='';
-    for(let i=0;i<CHUNKS.length;i++){
-      status.textContent=`Loading full app ${i+1} of ${CHUNKS.length}`;
-      const response=await fetch(CHUNKS[i],{cache:'reload'});
-      if(!response.ok) throw new Error(`Missing app part ${i+1}`);
-      encoded+=await response.text();
-      const pct=Math.round(((i+1)/CHUNKS.length)*100);
-      fill.style.width=pct+'%';track.setAttribute('aria-valuenow',String(pct));
-    }
-    status.textContent='Starting the English voice coach';
-    const binary=atob(encoded.replace(/\s/g,''));
-    const bytes=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-    let appHtml=new TextDecoder('utf-8').decode(bytes);
-    appHtml=appHtml.replace(/<html\s+lang=["'][^"']*["']/i,'<html lang="en-AU"');
-    appHtml=appHtml.replace('</body>',ENGLISH_PATCH+'</body>');
-    document.open();document.write(appHtml);document.close();
-  }catch(error){
-    console.error(error);status.textContent='The full app could not finish loading. Refresh once, then try again.';card.classList.add('error');
-  }
-}
-document.getElementById('retry').addEventListener('click',loadApp);
-loadApp();
-if('serviceWorker' in navigator){
-  window.addEventListener('load',async()=>{
-    try{const reg=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await reg.update();}catch(e){console.warn(e);}
-  });
-}
-</script>
-</body></html>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🎙️</div>
+      <div>
+        <h1>Julie Voice Studio</h1>
+        <p>C4-friendly private voice coaching</p>
+      </div>
+    </div>
+    <button id="installButton" class="small-button hidden" type="button">Install app</button>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section id="homeView" class="view active" aria-labelledby="homeTitle">
+      <article class="hero card">
+        <p class="eyebrow">Beginner programme</p>
+        <h2 id="homeTitle">Learn your voice one small change at a time.</h2>
+        <p id="homeSummary">Several short drills, not one endless exercise. No forced high pitch and no breath holding.</p>
+        <button id="startSessionButton" class="button primary giant" type="button">Start today’s 5-minute session</button>
+        <button id="quickSessionButton" class="button secondary" type="button">Low-energy 3-minute session</button>
+      </article>
+
+      <article class="card today-card">
+        <div>
+          <p class="eyebrow">Today’s focus</p>
+          <h3 id="todayTitle">Ease and breath pacing</h3>
+          <p id="todayDescription">Build a comfortable base and finish phrases before your breath is empty.</p>
+        </div>
+        <div class="day-badge" id="dayBadge">Day 1</div>
+      </article>
+
+      <div class="grid two">
+        <article class="card">
+          <p class="eyebrow">Before training</p>
+          <h3>Set up the microphone</h3>
+          <p>Check room noise and ordinary speaking level. The app will never ask you to shout.</p>
+          <button class="button secondary" data-open-view="mic" type="button">Microphone setup</button>
+        </article>
+        <article class="card">
+          <p class="eyebrow">Need a correction?</p>
+          <h3>Why doesn’t it sound right?</h3>
+          <p>Choose what feels wrong and get one practical correction.</p>
+          <button class="button secondary" data-open-view="fixer" type="button">Open sound fixer</button>
+        </article>
+      </div>
+
+      <article class="card progress-summary">
+        <p class="eyebrow">Your progress</p>
+        <div class="stats">
+          <div><strong id="sessionCount">0</strong><span>sessions</span></div>
+          <div><strong id="practiceMinutes">0</strong><span>minutes</span></div>
+          <div><strong id="savedCount">0</strong><span>saved clips</span></div>
+        </div>
+        <button class="button ghost" data-open-view="progress" type="button">Review progress</button>
+      </article>
+    </section>
+
+    <section id="checkinView" class="view" aria-labelledby="checkinTitle">
+      <article class="card focused-card">
+        <p class="eyebrow">Before we begin</p>
+        <h2 id="checkinTitle">How are you feeling right now?</h2>
+        <p>This changes the session. There is no reward for pushing through a bad breathing or throat day.</p>
+        <fieldset><legend>Energy</legend><div class="choice-row" id="energyChoices"><button class="choice" data-value="1" type="button">Very low</button><button class="choice" data-value="2" type="button">Low</button><button class="choice selected" data-value="3" type="button">Okay</button><button class="choice" data-value="4" type="button">Good</button><button class="choice" data-value="5" type="button">Strong</button></div></fieldset>
+        <fieldset><legend>Breathing</legend><div class="choice-row" id="breathChoices"><button class="choice selected" data-value="comfortable" type="button">Comfortable</button><button class="choice" data-value="limited" type="button">Slightly limited</button><button class="choice" data-value="difficult" type="button">Difficult</button></div></fieldset>
+        <fieldset><legend>Throat</legend><div class="choice-row" id="throatChoices"><button class="choice selected" data-value="comfortable" type="button">Comfortable</button><button class="choice" data-value="tired" type="button">Tired</button><button class="choice" data-value="sore" type="button">Sore</button></div></fieldset>
+        <div id="checkinWarning" class="notice warning hidden" role="status"></div>
+        <button id="beginCoachButton" class="button primary giant" type="button">Begin guided session</button>
+        <button class="button ghost" data-open-view="home" type="button">Back</button>
+      </article>
+    </section>
+
+    <section id="coachView" class="view" aria-labelledby="coachTitle">
+      <article class="card coach-card">
+        <div class="coach-topline"><div><p class="eyebrow" id="coachSkill">Comfort</p><span id="coachCounter">Exercise 1 of 4</span></div><button id="restButton" class="button danger compact" type="button">Rest</button></div>
+        <div class="progress-track" aria-label="Session progress"><div id="sessionProgress" class="progress-fill"></div></div>
+        <div id="coachStep" class="step-card">
+          <div id="coachIcon" class="step-icon" aria-hidden="true">🫧</div><p class="step-label" id="coachStepLabel">Step 1 of 4</p><h2 id="coachTitle">Get comfortable first.</h2><p id="coachInstruction">Head supported, jaw loose, and one ordinary breath.</p>
+          <div class="cue-grid"><div class="cue do"><strong>Do this</strong><p id="doCue">Let your jaw hang easily.</p></div><div class="cue feel"><strong>Feel this</strong><p id="feelCue">No pulling or squeezing.</p></div><div class="cue avoid"><strong>Avoid this</strong><p id="avoidCue">A huge breath.</p></div></div>
+          <div class="phrase-wrap"><span id="phraseLabel">Practice target</span><div id="practicePhrase" class="phrase">One normal breath.</div></div>
+        </div>
+        <div id="coachStatus" class="status-line" aria-live="polite"></div><audio id="playback" class="hidden" controls></audio>
+        <div class="coach-actions"><button id="hearInstructionButton" class="button secondary" type="button">🔊 Hear instruction</button><button id="mainCoachButton" class="button primary giant" type="button">I’m ready — next</button><button id="recordButton" class="button secondary hidden" type="button">● Record one attempt</button><button id="replayButton" class="button secondary hidden" type="button">▶ Replay</button><button id="saveClipButton" class="button secondary hidden" type="button">Save this clip</button><button id="tooHardButton" class="button ghost" type="button">Make it easier</button><button id="openFixerFromCoach" class="button ghost" type="button">Why doesn’t it sound right?</button><button id="skipExerciseButton" class="button ghost" type="button">Skip this exercise</button></div>
+      </article>
+    </section>
+
+    <section id="restView" class="view" aria-labelledby="restTitle"><article class="card focused-card rest-card"><div class="rest-icon" aria-hidden="true">⏸️</div><p class="eyebrow">Rest is part of training</p><h2 id="restTitle">Let everything settle.</h2><p>No humming, testing or squeezing. Breathe normally and let your throat rest.</p><div class="rest-options"><button class="button secondary" data-rest="30" type="button">30 seconds</button><button class="button secondary" data-rest="60" type="button">60 seconds</button><button class="button secondary" data-rest="0" type="button">No timer</button></div><div id="restTimer" class="rest-timer" aria-live="polite">Rest as long as you need.</div><button id="resumeButton" class="button primary giant" type="button">Resume when ready</button><button id="finishEarlyButton" class="button ghost" type="button">Finish session now</button></article></section>
+
+    <section id="reviewView" class="view" aria-labelledby="reviewTitle"><article class="card focused-card"><p class="eyebrow">Listen, then choose one thing</p><h2 id="reviewTitle">How did that attempt feel?</h2><p>The app does not decide whether you sound male or female. Your comfort and your chosen goal matter.</p><audio id="reviewPlayback" controls></audio><fieldset><legend>Effort</legend><div class="choice-row" id="effortChoices"><button class="choice" data-value="easy" type="button">Easy</button><button class="choice" data-value="some" type="button">Some effort</button><button class="choice" data-value="strained" type="button">Strained</button></div></fieldset><fieldset><legend>Compared with your goal</legend><div class="choice-row" id="alignmentChoices"><button class="choice" data-value="closer" type="button">Closer</button><button class="choice" data-value="same" type="button">About the same</button><button class="choice" data-value="wrong" type="button">Not right</button></div></fieldset><div class="analysis-card"><strong id="analysisHeadline">That gave us useful information.</strong><p id="analysisText">Choose how it felt and the coaching will respond honestly.</p><dl id="metricList" class="metrics"></dl></div><button id="saveReviewClipButton" class="button secondary" type="button">Save this clip</button><button id="acceptAttemptButton" class="button primary giant" type="button">Continue</button><button id="tryAgainButton" class="button secondary" type="button">Try once more</button><button class="button ghost" data-open-view="fixer" type="button">Choose a specific problem</button></article></section>
+
+    <section id="completeView" class="view" aria-labelledby="completeTitle"><article class="card focused-card celebration-card"><div class="celebration-icon" aria-hidden="true">✓</div><p class="eyebrow">Session complete</p><h2 id="completeTitle">You practised without forcing it.</h2><p id="completeSummary">You completed several short exercises and stopped before strain.</p><div id="completeStats" class="summary-list"></div><button class="button primary giant" data-open-view="home" type="button">Return home</button></article></section>
+
+    <section id="micView" class="view" aria-labelledby="micTitle"><article class="card focused-card"><p class="eyebrow">Microphone setup</p><h2 id="micTitle">Use an ordinary speaking voice.</h2><p>Start about 20–30 cm away and slightly beside your breath stream. Keep the microphone clear of clothing, your headrest and wheelchair vibrations.</p><div id="secureContextNotice" class="notice"></div><label for="inputDeviceSelect">Microphone</label><select id="inputDeviceSelect"><option value="">Default microphone</option></select><div class="level-meter" aria-label="Microphone level"><div id="micLevel" class="level-fill"></div></div><p id="micInstruction" class="mic-instruction">Press Start. The app will listen to room noise, then ask for one normal sentence.</p><button id="runMicCheckButton" class="button primary giant" type="button">Start microphone check</button><div id="micResult" class="result-card hidden" role="status"></div><button class="button ghost" data-open-view="home" type="button">Back home</button></article></section>
+
+    <section id="fixerView" class="view" aria-labelledby="fixerTitle"><article class="card focused-card"><p class="eyebrow">Direct correction</p><h2 id="fixerTitle">What sounds or feels wrong?</h2><p>Choose the closest problem. You will get one correction—not ten theories.</p><div id="fixerOptions" class="fixer-grid"></div><div id="fixerResult" class="result-card hidden"><h3 id="fixerResultTitle"></h3><p id="fixerExplanation"></p><div class="cue-grid"><div class="cue do"><strong>Do this</strong><p id="fixerDo"></p></div><div class="cue feel"><strong>Feel this</strong><p id="fixerFeel"></p></div><div class="cue avoid"><strong>Avoid this</strong><p id="fixerAvoid"></p></div></div><div class="phrase-wrap"><span>Tiny retry</span><div id="fixerPhrase" class="phrase"></div></div><button id="hearFixButton" class="button secondary" type="button">🔊 Hear the fix</button><button id="applyFixButton" class="button primary" type="button">Use this fix in coach</button></div><button id="fixerBackButton" class="button ghost" type="button">Back</button></article></section>
+
+    <section id="progressView" class="view" aria-labelledby="progressTitle"><article class="card focused-card"><p class="eyebrow">Progress without judgement</p><h2 id="progressTitle">Your practice history</h2><div class="stats large-stats"><div><strong id="progressSessions">0</strong><span>sessions</span></div><div><strong id="progressMinutes">0</strong><span>minutes</span></div><div><strong id="progressAttempts">0</strong><span>attempts</span></div></div><div id="recentSessions" class="history-list"></div><h3>Saved clips</h3><div id="savedClips" class="history-list"></div><button id="exportButton" class="button secondary" type="button">Export progress</button><button id="deleteDataButton" class="button danger" type="button">Delete all local data</button><button class="button ghost" data-open-view="home" type="button">Back home</button></article></section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation"><button class="nav-button active" data-open-view="home" type="button"><span aria-hidden="true">⌂</span>Home</button><button class="nav-button" data-open-view="coach" type="button"><span aria-hidden="true">▶</span>Coach</button><button class="nav-button" data-open-view="mic" type="button"><span aria-hidden="true">🎙</span>Mic</button><button class="nav-button" data-open-view="progress" type="button"><span aria-hidden="true">↗</span>Progress</button></nav>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="data.js" defer></script><script src="audio.js" defer></script><script src="app-core.js" defer></script><script src="app-tools.js" defer></script>
+</body>
+</html>
